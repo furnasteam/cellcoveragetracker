@@ -1,9 +1,7 @@
 import {createApiData} from '../../redux/ApiDataModel';
 import {call, fork, select, takeEvery} from 'redux-saga/effects';
 import {getData, isApiDataSuccess} from '../../models/ApiDataModel';
-import _map from 'lodash/map';
-import isEmpty from 'lodash/isEmpty';
-import last from 'lodash/last';
+import forEach from 'lodash/forEach';
 
 export const HomeAction = {
   GET_ROUTES: 'HomeAction.GET_ROUTES',
@@ -105,122 +103,169 @@ export function selectTo(state) {
 function* getRoutesSaga() {
   const from = yield select(selectFrom);
   const to = yield select(selectTo);
-  const routesApiData = yield call(createApiData, GET_ROUTES_API_DATA_KEY, 'http://routesearcherapi.azurewebsites.net/api/RouteSearcher/GetRoutes', {from, to});
 
-// Get an instance of the routing service:
-  var router = getPlatform().getRoutingService();
+  console.log('from', from);
+  console.log('to', to);
 
-  if (routesApiData::isApiDataSuccess()) {
-    const routes = routesApiData::getData()[0].routes;
-    const routingParams = _map(routes, route => ({
-      'mode': `fastest;${route.transport === 'Пешком' ? 'pedestrian' : 'car'}`,
-      // The start point of the route:
-      'waypoint0': `geo!${route.points[0].coordinate.latitude},${route.points[0].coordinate.longitude}`,
-      // The end point of the route:
-      'waypoint1': `geo!${last(route.points).coordinate.latitude},${last(route.points).coordinate.longitude}`,
-      // To retrieve the shape of the route we choose the route
-      // representation mode 'display'
-      'representation': 'display',
-      'transport': route.transport
-    }));
+  const routesApiData = yield call(createApiData, GET_ROUTES_API_DATA_KEY, 'https://cellcoverage.azurewebsites.net/api/Search/RouteInfo', {from, to});
 
-    const getOnResultCallback = (transport) => {
-      return function (result) {
-        var route,
-          routeShape,
-          startPoint,
-          endPoint,
-          linestring;
-        if (result.response.route) {
-          // Pick the first route from the response:
-          route = result.response.route[0];
-          // Pick the route's shape:
-          routeShape = route.shape;
+  function addPolylineToMap(map, route) {
+    var lineString = new H.geo.LineString();
 
-          // Create a linestring to use as a point source for the route line
-          linestring = new H.geo.LineString();
+    forEach(route, item => {
+      lineString.pushPoint({
+        lat: item.latitude,
+        lng: item.longitude
+      })
+    });
 
-          // Push all the points in the shape into the linestring:
-          routeShape.forEach(function (point) {
-            var parts = point.split(',');
-            linestring.pushLatLngAlt(parts[0], parts[1]);
-          });
+    const object = new H.map.Polyline(
+      lineString, {style: {lineWidth: 4}}
+    );
 
-          // Retrieve the mapped positions of the requested waypoints:
-          startPoint = route.waypoint[0].mappedPosition;
-          endPoint = route.waypoint[1].mappedPosition;
+    map.addObject(object);
+    map.setViewBounds(object.getBounds())
+  }
 
-          const getRandomColor = () => {
-            var letters = '0123456789ABCDEF';
-            var color = '#';
-            for (var i = 0; i < 6; i++) {
-              color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-          };
-
-
-          // Create a polyline to display the route:
-          var routeLine = new H.map.Polyline(linestring, {
-            style: {strokeColor: getRandomColor(), lineWidth: 10}
-          });
-
-          // Create a marker for the start point:
-          var startMarker = new H.map.Marker({
-            lat: startPoint.latitude,
-            lng: startPoint.longitude
-          });
-
-          startMarker.addEventListener('tap', function (evt) {
-            // event target is the marker itself, group is a parent event target
-            // for all objects that it contains
-            var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
-              // read custom data
-              content: evt.target.getData()
-            });
-            // show info bubble
-            ui.addBubble(bubble);
-          }, false);
-
-          // Create a marker for the end point:
-          var endMarker = new H.map.Marker({
-            lat: endPoint.latitude,
-            lng: endPoint.longitude
-          });
-          endMarker.setData(transport);
-
-          endMarker.addEventListener('tap', function (evt) {
-            // event target is the marker itself, group is a parent event target
-            // for all objects that it contains
-            var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
-              // read custom data
-              content: evt.target.getData()
-            });
-            // show info bubble
-            ui.addBubble(bubble);
-          }, false);
-          startMarker.setData(transport);
-
-          // Add the route polyline and the two markers to the map:
-          getMap().addObjects([routeLine, startMarker, endMarker]);
-
-          // Set the map's viewport to make the whole route visible:
-          getMap().setViewBounds(routeLine.getBounds());
+  function addCircleToMap(map, point) {
+    map.addObject(new H.map.Circle(
+      // The central point of the circle
+      {lat: point.latitude, lng: point.longitude},
+      // The radius of the circle in meters
+      100,
+      {
+        style: {
+          strokeColor: 'rgba(55, 85, 170, 0.6)', // Color of the perimeter
+          lineWidth: 2,
+          fillColor: 'rgba(0, 128, 0, 0.7)'  // Color of the circle
         }
       }
-    };
-
-    // Define a callback function to process the routing response:
-
-    if (!isEmpty(routingParams)) {
-      for (let routingParam of routingParams) {
-        router.calculateRoute(routingParam, getOnResultCallback(routingParam.transport),
-          function (error) {
-            alert(error.message);
-          });
-      }
-    }
+    ));
   }
+
+  function addPointsToMap(map, points) {
+    forEach(points, point => addCircleToMap(map, point))
+  }
+
+  if (routesApiData::isApiDataSuccess()) {
+    addPolylineToMap(getMap(), routesApiData::getData().route);
+    addPointsToMap(getMap(), routesApiData::getData().route)
+  }
+
+// Get an instance of the routing service:
+  //var router = getPlatform().getRoutingService();
+
+  // if (routesApiData::isApiDataSuccess()) {
+  //   const routes = routesApiData::getData()[0].routes;
+  //   const routingParams = _map(routes, route => ({
+  //     'mode': `fastest;${route.transport === 'Пешком' ? 'pedestrian' : 'car'}`,
+  //     // The start point of the route:
+  //     'waypoint0': `geo!${route.points[0].coordinate.latitude},${route.points[0].coordinate.longitude}`,
+  //     // The end point of the route:
+  //     'waypoint1': `geo!${last(route.points).coordinate.latitude},${last(route.points).coordinate.longitude}`,
+  //     // To retrieve the shape of the route we choose the route
+  //     // representation mode 'display'
+  //     'representation': 'display',
+  //     'transport': route.transport
+  //   }));
+  //
+  //   const getOnResultCallback = (transport) => {
+  //     return function (result) {
+  //       var route,
+  //         routeShape,
+  //         startPoint,
+  //         endPoint,
+  //         linestring;
+  //       if (result.response.route) {
+  //         // Pick the first route from the response:
+  //         route = result.response.route[0];
+  //         // Pick the route's shape:
+  //         routeShape = route.shape;
+  //
+  //         // Create a linestring to use as a point source for the route line
+  //         linestring = new H.geo.LineString();
+  //
+  //         // Push all the points in the shape into the linestring:
+  //         routeShape.forEach(function (point) {
+  //           var parts = point.split(',');
+  //           linestring.pushLatLngAlt(parts[0], parts[1]);
+  //         });
+  //
+  //         // Retrieve the mapped positions of the requested waypoints:
+  //         startPoint = route.waypoint[0].mappedPosition;
+  //         endPoint = route.waypoint[1].mappedPosition;
+  //
+  //         const getRandomColor = () => {
+  //           var letters = '0123456789ABCDEF';
+  //           var color = '#';
+  //           for (var i = 0; i < 6; i++) {
+  //             color += letters[Math.floor(Math.random() * 16)];
+  //           }
+  //           return color;
+  //         };
+  //
+  //
+  //         // Create a polyline to display the route:
+  //         var routeLine = new H.map.Polyline(linestring, {
+  //           style: {strokeColor: getRandomColor(), lineWidth: 10}
+  //         });
+  //
+  //         // Create a marker for the start point:
+  //         var startMarker = new H.map.Marker({
+  //           lat: startPoint.latitude,
+  //           lng: startPoint.longitude
+  //         });
+  //
+  //         startMarker.addEventListener('tap', function (evt) {
+  //           // event target is the marker itself, group is a parent event target
+  //           // for all objects that it contains
+  //           var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
+  //             // read custom data
+  //             content: evt.target.getData()
+  //           });
+  //           // show info bubble
+  //           ui.addBubble(bubble);
+  //         }, false);
+  //
+  //         // Create a marker for the end point:
+  //         var endMarker = new H.map.Marker({
+  //           lat: endPoint.latitude,
+  //           lng: endPoint.longitude
+  //         });
+  //         endMarker.setData(transport);
+  //
+  //         endMarker.addEventListener('tap', function (evt) {
+  //           // event target is the marker itself, group is a parent event target
+  //           // for all objects that it contains
+  //           var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
+  //             // read custom data
+  //             content: evt.target.getData()
+  //           });
+  //           // show info bubble
+  //           ui.addBubble(bubble);
+  //         }, false);
+  //         startMarker.setData(transport);
+  //
+  //         // Add the route polyline and the two markers to the map:
+  //         getMap().addObjects([routeLine, startMarker, endMarker]);
+  //
+  //         // Set the map's viewport to make the whole route visible:
+  //         getMap().setViewBounds(routeLine.getBounds());
+  //       }
+  //     }
+  //   };
+  //
+  //   // Define a callback function to process the routing response:
+  //
+  //   if (!isEmpty(routingParams)) {
+  //     for (let routingParam of routingParams) {
+  //       router.calculateRoute(routingParam, getOnResultCallback(routingParam.transport),
+  //         function (error) {
+  //           alert(error.message);
+  //         });
+  //     }
+  //   }
+  // }
 
 }
 

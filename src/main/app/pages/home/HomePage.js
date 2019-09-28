@@ -1,8 +1,7 @@
 import React from 'react';
 import './home.scss';
 import {Helmet} from 'react-helmet';
-import {getMap, getPlatform, getRoutesAction, setFromAction, setToAction, test2Action, testAction} from './HomePageModel';
-import {Button} from '../../components/button/Button';
+import {getMap, getPlatform, getRoutesAction, selectFrom, selectTo, setFromAction, setToAction, test2Action, testAction} from './HomePageModel';
 import {connect} from 'react-redux';
 import {LocationSelect} from '../../components/location-select/LocationSelect';
 
@@ -21,10 +20,12 @@ class HomePageComponent extends React.Component {
 
   handleFromSelect = (location) => {
     this.props.setFrom(location);
+    this.props.getRoutes();
   };
 
   handleToSelect = (location) => {
     this.props.setTo(location);
+    this.props.getRoutes();
   };
 
   render() {
@@ -63,7 +64,10 @@ class HomePageComponent extends React.Component {
 
 }
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = (state) => ({
+  from: selectFrom(state),
+  to: selectTo(state)
+});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   getRoutes: () => dispatch(getRoutesAction()),

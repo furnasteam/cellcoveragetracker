@@ -51,7 +51,7 @@ app.get("*", (req, res) => {
     <body>
     <div id="root" dangerouslySetInnerHTML={ {__html: appString} }>
     </div>
-    <script src="/hack.client.js"></script>
+    <script src="/cellcoveragetracker.client.js"></script>
     </body>
     </html>));
   res.end();

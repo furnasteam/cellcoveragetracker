@@ -31,17 +31,17 @@ class HomePageComponent extends React.Component {
     return (
       [
         <Helmet key="1">
-          <title>Навигатор по Тульской области</title>
+          <title>Трекер покрытия сотовой связи</title>
           <meta name="description"
-                content="Построение маршрута по городам Тульской области на общественном транспорте"/>
-          <link rel="canonical" href="https://hack.ru"/>
+                content="Трекер покрытия сотовой связи"/>
+          <link rel="canonical" href="https://cellcoveragetracker.furnas.ru"/>
         </Helmet>,
         <div className="home"
              key="2">
           <div className="home__panel">
             <div className="home__panel-title">
               <div>
-                Поиск маршрутов
+                yura2kids
               </div>
             </div>
             <div className="home__route">

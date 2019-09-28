@@ -5,7 +5,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const clientConfig = {
   entry: {
-    'hack.client' : ["babel-polyfill", "./src/main/client/client.js"],
+    'cellcoveragetracker.client' : ["babel-polyfill", "./src/main/client/client.js"],
     'pdf.worker': 'pdfjs-dist/build/pdf.worker.entry'
   },
   output: {
@@ -73,7 +73,7 @@ const serverConfig = {
   externals: [ nodeExternals({ whitelist: [ "webpack/hot/poll?1000" ] }) ],
   output: {
     path: path.resolve(__dirname, "server"),
-    filename: "hack.server.js"
+    filename: "cellcoveragetracker.server.js"
   },
   module: {
     rules: [

@@ -5,7 +5,7 @@ const webpack = require("webpack");
 
 const clientConfig = {
   entry: {
-    'hack.client' : ["babel-polyfill", "./src/main/client/client.js"],
+    'cellcoveragetracker.client' : ["babel-polyfill", "./src/main/client/client.js"],
     'pdf.worker': 'pdfjs-dist/build/pdf.worker.entry'
   },
   output: {
@@ -75,7 +75,7 @@ const serverConfig = {
   target: 'node',
   output: {
     path: path.resolve(__dirname, "server"),
-    filename: "hack.server.js"
+    filename: "cellcoveragetracker.server.js"
   },
   module: {
     rules: [

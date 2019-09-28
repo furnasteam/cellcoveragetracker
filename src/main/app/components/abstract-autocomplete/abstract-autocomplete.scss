@@ -55,8 +55,8 @@
   }
 
   &__focused {
-    background: #FFFFFF;
-    border: 1px solid #BCD0DF;
-    box-shadow: 0 2px 5px 1px rgba(0,0,0,0.10);
+    background: #FFFFFF !important;
+    border: 1px solid #BCD0DF !important;
+    box-shadow: 0 2px 5px 1px rgba(0,0,0,0.10) !important;
   }
 }

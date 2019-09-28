@@ -1,7 +1,7 @@
 import size from 'lodash/size';
 import {call, fork, put, select, takeEvery} from 'redux-saga/effects';
 import {debounce} from '../../redux/effects/debounce';
-import {createApiData, reduceApiData, resetApiData} from '../../redux/ApiDataModel';
+import {createApiData, reduceApiData, resetApiData, selectApiData} from '../../redux/ApiDataModel';
 import {getData, isApiDataSuccess} from '../../models/ApiDataModel';
 
 const FOUND_LOCATIONS_API_DATA_KEY = 'LocationSelect.FOUND_LOCATIONS_API_DATA_KEY';
@@ -104,7 +104,7 @@ function selectInstance(state, id) {
 }
 
 export function selectFoundLocationsApiData(state, id) {
-  return selectInstance(state, id)[FOUND_LOCATIONS_API_DATA_KEY];
+  return selectApiData(state, FOUND_LOCATIONS_API_DATA_KEY, id);
 }
 
 export function selectSearchValue(state, id) {
@@ -116,11 +116,11 @@ export function selectFoundLocations(state, id) {
 }
 
 function* searchLocationsSaga({payload: {search, id}}) {
-  console.log('start');
-  const foundLocationsApiData = yield call(createApiData, FOUND_LOCATIONS_API_DATA_KEY, 'http://routesearcherapi.azurewebsites.net/api/RouteSearcher/GetSuggestions', {text: search});
+  const foundLocationsApiData = yield call(createApiData, FOUND_LOCATIONS_API_DATA_KEY, 'https://cellcoverage.azurewebsites.net/api/Search/GetSuggestions', {text: search}, null, {
+    API_DATA_INSTANCE_ID: id
+  });
   if (foundLocationsApiData::isApiDataSuccess()) {
     const result = foundLocationsApiData::getData();
-    console.log('there');
     yield put(setFoundLocationsAction(id, result));
   }
 }

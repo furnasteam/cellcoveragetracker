@@ -39,32 +39,17 @@ class HomePageComponent extends React.Component {
         <div className="home"
              key="2">
           <div className="home__panel">
-            <div className="home__panel-title">
-              <div>
-                yura2kids
-              </div>
-            </div>
             <div className="home__route">
-              Маршрут
+              Укажите маршрут
             </div>
+            <div className="home__route-image"></div>
             <div className="home__from">
-              <div className="home__a">
-                A
-              </div>
               <LocationSelect id="from"
                               onLocationSelect={this.handleFromSelect}/>
             </div>
             <div className="home__to">
-              <div className="home__b">
-                B
-              </div>
               <LocationSelect id="to"
                               onLocationSelect={this.handleToSelect}/>
-            </div>
-            <div className="home__button-container">
-              <Button onClick={this.handleClick}>
-                Построить
-              </Button>
             </div>
           </div>
           <div id="mapContainer">

@@ -24,13 +24,14 @@
 
   &__panel {
     background: #ffffff;
-    border-radius: 25px;
-    width: 504px;
-    height: 400px;
+    border-radius: 8px;
+    width: 379px;
+    height: 216px;
     position: absolute;
-    left: 16px;
-    top: 16px;
+    left: 24px;
+    top: 24px;
     z-index: 1;
+    box-shadow: 0 2px 11px 2px rgba(0, 0, 0, 0.10);
   }
 
   &__panel-title {
@@ -54,24 +55,23 @@
   }
 
   &__to {
-    width: 330px;
-    align-self: center;
-    margin: 24px auto;
+    width: 300px;
+    margin: 8px 32px;
   }
 
   &__from {
-    width: 330px;
-    align-self: center;
-    margin: 24px auto;
+    width: 300px;
+    margin: 8px 32px;
   }
 
   &__route {
-    font-family: Montserrat-SemiBold;
-    font-size: 16px;
-    color: #3E5662;
-    text-align: center;
-    margin-top: 38px;
-    margin-left: -223px;
+    font-family: SourceSansPro-Regular;
+    font-size: 18px;
+    color: #212121;
+    text-align: left;
+    line-height: 24px;
+    margin-left: 48px;
+    margin-top: 16px;
   }
   &__a {
     position: absolute;
@@ -84,6 +84,15 @@
     z-index: 1;
     margin-left: -28px;
     margin-top: 13px;
+  }
+  &__route-image {
+    position: absolute;
+    width: 8px;
+    height: 74px;
+    background: url('./images/way.png') no-repeat;
+    background-size: contain;
+    left: 16px;
+    top: 72px;
   }
 }
 

@@ -37,7 +37,7 @@ class LocationSelectComponent extends Component {
   handleLocationSelect = (location) => {
     const {onLocationSelect, resetSearchResult, changeSearchValue} = this.props;
     resetSearchResult();
-    changeSearchValue(location.address);
+    changeSearchValue(location.title);
     onLocationSelect(location);
   };
 
@@ -67,7 +67,7 @@ class LocationSelectComponent extends Component {
               <AbstractAutocompleteOption key={index}
                                           value={location}>
                 <div>
-                  {location.address}
+                  {location.title}
                 </div>
               </AbstractAutocompleteOption>
             );

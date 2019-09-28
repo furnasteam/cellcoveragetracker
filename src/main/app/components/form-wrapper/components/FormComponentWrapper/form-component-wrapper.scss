@@ -10,24 +10,29 @@
   width: 100%;
   line-height: 1.42857143;
   color: #555;
-  border: 1px solid #e5e5e5;
   font-size: 15px;
   box-shadow: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid #BCD0DF;
 
   &__wrapper {
     width: 100%;
   }
 
   & > input {
-    padding: 0 15px;
+    padding: 0 16px;
     box-shadow: none;
     border: none;
     outline: none;
-    height: 40px;
-    width: calc(100% - 30px);
-    border-radius: 4px;
-
+    height: 56px;
+    width: calc(100% - 32px);
+    border-radius: 8px;
+    font-family: SourceSansPro-Regular;
+    font-size: 18px;
+    color: #477EA8;
+    text-align: left;
+    line-height: 24px;
     &[disabled] {
       background-color: $disabled-color;
       cursor: not-allowed;

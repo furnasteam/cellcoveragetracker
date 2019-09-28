@@ -68,7 +68,8 @@ export class AbstractAutocomplete extends React.Component {
 
   state = {
     localInputValue: this.props.inputValue,
-    selectedOption: null
+    selectedOption: null,
+    focused: false
   };
 
   renderedOptions = [];
@@ -105,12 +106,13 @@ export class AbstractAutocomplete extends React.Component {
 
   handleBlur = () => {
     const {onBlur, inputValue} = this.props;
-    this.setState({localInputValue: inputValue, selectedOption: null});
+    this.setState({localInputValue: inputValue, selectedOption: null, focused: false});
     onBlur();
   };
 
   handleFocus = () => {
     const {onFocus} = this.props;
+    this.setState({focused: true});
     onFocus();
   };
 
@@ -211,7 +213,7 @@ export class AbstractAutocomplete extends React.Component {
     let displayedRightIcon = rightIcon;
 
     if (isLoading) {
-      displayedRightIcon = <i/>;
+      displayedRightIcon = <div className="abstract-autocomplete__loader"></div>;
     } else if (clearable && inputValue && !disabled) {
       displayedRightIcon = <i className="fa fa-close text-muted abstract-autocomplete__clear-icon" onClick={this.handleClearClick}/>;
     }
@@ -224,7 +226,7 @@ export class AbstractAutocomplete extends React.Component {
                   onChange={this.handleInputChange}
                   onBlur={this.handleBlur}
                   onFocus={this.handleFocus}
-                  className={inputClassName}
+                  className={classNames(inputClassName, this.state.focused ? 'abstract-autocomplete__focused' : '')}
                   onKeyDown={this.handleInputKeyDown}
                   disabled={disabled}
                   label={label}

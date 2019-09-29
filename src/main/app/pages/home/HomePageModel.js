@@ -172,7 +172,7 @@ function* getRoutesSaga() {
       // The central point of the circle
       {lat: point.latitude, lng: point.longitude},
       // The radius of the circle in meters
-      1000,
+      100,
       {
         style: {
           strokeColor: 'rgba(55, 85, 170, 0)', // Color of the perimeter

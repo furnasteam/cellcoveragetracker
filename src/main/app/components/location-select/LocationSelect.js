@@ -26,7 +26,7 @@ class LocationSelectComponent extends Component {
     onPersonSelect: func,
     resetComponentData: func,
     resetSearchResult: func,
-    searchMorePersons: func
+    searchMorePersons: func,
   };
 
   componentWillUnmount() {
@@ -61,6 +61,7 @@ class LocationSelectComponent extends Component {
                             onClearOptions={this.handleClearOptions}
                             onChange={this.handleLocationSelect}
                             onBlur={this.handleBlur}
+                            onFocus={this.handleFocus}
                             isLoading={foundLocationsApiData::isApiDataPending()}>
         {map(foundLocations, (location, index) => {
             return (

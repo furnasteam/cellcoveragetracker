@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="14px" height="14px" viewBox="0 0 14 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>filter-filled-tool-symbol</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Welcome" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Hackathon_2_1440px" transform="translate(-24.000000, -693.000000)" fill="#FF8562" fill-rule="nonzero">
+            <g id="filter-filled-tool-symbol" transform="translate(24.000000, 693.000000)">
+                <path d="M5.27471605,6.6154321 C5.42162963,6.77530864 5.50228807,6.98415638 5.50228807,7.20020576 L5.50228807,13.5664609 C5.50228807,13.9496029 5.96463374,14.1440473 6.2382963,13.8746914 L8.01422222,11.8395062 C8.25187654,11.554321 8.3829465,11.4131543 8.3829465,11.1308642 L8.3829465,7.20164609 C8.3829465,6.98559671 8.46504527,6.77674897 8.61051852,6.61685802 L13.7063889,1.08744856 C14.0880761,0.672633745 13.7942634,0 13.2296399,0 L0.655565844,0 C0.0909567901,0 -0.2043107,0.671193416 0.178816872,1.08744856 L5.27471605,6.6154321 Z" id="Shape"></path>
+            </g>
+        </g>
+    </g>
+</svg>

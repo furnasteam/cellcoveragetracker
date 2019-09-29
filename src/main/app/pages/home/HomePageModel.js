@@ -1,4 +1,4 @@
-import {createApiData} from '../../redux/ApiDataModel';
+import {createApiData, selectApiData} from '../../redux/ApiDataModel';
 import {call, fork, select, takeEvery} from 'redux-saga/effects';
 import {getData, isApiDataSuccess} from '../../models/ApiDataModel';
 import forEach from 'lodash/forEach';
@@ -100,12 +100,17 @@ export function selectTo(state) {
   return selectHome(state).to;
 }
 
+export function selectRoutesApiData(state) {
+  return selectApiData(state, GET_ROUTES_API_DATA_KEY);
+}
+
 function* getRoutesSaga() {
   const from = yield select(selectFrom);
   const to = yield select(selectTo);
 
-  console.log('from', from);
-  console.log('to', to);
+  if (!to || !from) {
+    return;
+  }
 
   const routesApiData = yield call(createApiData, GET_ROUTES_API_DATA_KEY, 'https://cellcoverage.azurewebsites.net/api/Search/RouteInfo', {from, to});
 
@@ -128,16 +133,51 @@ function* getRoutesSaga() {
   }
 
   function addCircleToMap(map, point) {
+
+    console.log('point123', point);
+
+    function getLevelOpacity(level){
+      switch (level) {
+        case 4:{
+          return '0.7'
+        }
+        case 3:{
+          return '0.5'
+        }
+        default:{
+          return '0.3'
+        }
+      }
+    }
+
+    function getColor(point) {
+      console.log('point.operatorName', point)
+      switch (point.operatorName) {
+        case 'Tele2':
+          return `rgba(104, 189, 255, ${getLevelOpacity(point.level)})`;
+        case 'MTS':
+          return `rgba(255, 104, 104, ${getLevelOpacity(point.level)})`;
+        case 'Tinkoff':
+          return `rgba(255, 224, 104, ${getLevelOpacity(point.level)})`;
+        case 'Beeline':
+          return `rgba(255, 180, 104, ${getLevelOpacity(point.level)})`;
+        case 'Megafon':
+          return `rgba(167, 221, 80, ${getLevelOpacity(point.level)})`;
+      }
+    }
+
+    console.log('getColor(point)', getColor(point))
+
     map.addObject(new H.map.Circle(
       // The central point of the circle
       {lat: point.latitude, lng: point.longitude},
       // The radius of the circle in meters
-      100,
+      1000,
       {
         style: {
-          strokeColor: 'rgba(55, 85, 170, 0.6)', // Color of the perimeter
+          strokeColor: 'rgba(55, 85, 170, 0)', // Color of the perimeter
           lineWidth: 2,
-          fillColor: 'rgba(0, 128, 0, 0.7)'  // Color of the circle
+          fillColor: getColor(point) || 'rgba(55, 85, 170, 0.5)' // Color of the circle
         }
       }
     ));
@@ -147,9 +187,9 @@ function* getRoutesSaga() {
     forEach(points, point => addCircleToMap(map, point))
   }
 
-  if (routesApiData::isApiDataSuccess()) {
+  if (routesApiData::isApiDataSuccess() && routesApiData::getData()) {
     addPolylineToMap(getMap(), routesApiData::getData().route);
-    addPointsToMap(getMap(), routesApiData::getData().route)
+    addPointsToMap(getMap(), routesApiData::getData().points)
   }
 
 // Get an instance of the routing service:

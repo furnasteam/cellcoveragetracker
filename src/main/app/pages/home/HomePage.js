@@ -1,12 +1,30 @@
 import React from 'react';
 import './home.scss';
 import {Helmet} from 'react-helmet';
-import {getMap, getPlatform, getRoutesAction, selectFrom, selectRoutesApiData, selectTo, setFromAction, setToAction, test2Action, testAction} from './HomePageModel';
+import {
+  applyFiltersAction,
+  getMap,
+  getPlatform,
+  getRoutesAction,
+  selectFrom,
+  selectLevels,
+  selectProviders,
+  selectRoutesApiData,
+  selectStandards,
+  selectTo,
+  setFromAction, setLevelsAction, setProvidersAction, setStandardsAction,
+  setToAction,
+  test2Action,
+  testAction
+} from './HomePageModel';
 import {connect} from 'react-redux';
 import {LocationSelect} from '../../components/location-select/LocationSelect';
 import {getData, isApiDataPending} from '../../models/ApiDataModel';
 import {changeSearchValueAction} from '../../components/location-select/LocationSelectModel';
 import find from 'lodash/find';
+import includes from 'lodash/includes';
+import filter from 'lodash/filter';
+import {Checkbox} from '../../components/checkbox/Checkbox';
 
 
 class HomePageComponent extends React.Component {
@@ -38,6 +56,36 @@ class HomePageComponent extends React.Component {
     this.props.changeSearchValue('to', '');
   };
 
+  onProviderFilterChange(checked, provider) {
+    const {providers, setProviders, applyFilters} = this.props;
+    if (checked) {
+      setProviders([...providers, provider]);
+    } else {
+      setProviders(filter(providers, p => p !== provider));
+    }
+    applyFilters();
+  }
+
+  onLevelFilterChange(checked, level) {
+    const {levels, setLevels, applyFilters} = this.props;
+    if (checked) {
+      setLevels([...levels, level]);
+    } else {
+      setLevels(filter(levels, p => p !== level));
+    }
+    applyFilters();
+  }
+
+  onStandardFilterChange(checked, standard) {
+    const {standards, setStandards, applyFilters} = this.props;
+    if (checked) {
+      setStandards([...standards, standard]);
+    } else {
+      setStandards(filter(standards, p => p !== standard));
+    }
+    applyFilters();
+  }
+
   renderTableRowData(providerName) {
     const providerData = find(this.props.routesApiData::getData().stat.operatorStats, stat => stat.operatorName === providerName);
     return [
@@ -49,7 +97,7 @@ class HomePageComponent extends React.Component {
   }
 
   render() {
-    const {routesApiData, from, to} = this.props;
+    const {routesApiData, from, to, standards, levels, providers} = this.props;
     return (
       [
         <Helmet key="1">
@@ -124,12 +172,23 @@ class HomePageComponent extends React.Component {
               <div className="home__filter-provider">
                 По операторам
               </div>
+              <Checkbox checked={includes(providers, 'MTS')} onChange={(checked) => this.onProviderFilterChange(checked, 'MTS')} label="MTC"></Checkbox>
+              <Checkbox checked={includes(providers, 'Beeline')} onChange={(checked) => this.onProviderFilterChange(checked, 'Beeline')} label="Билайн"></Checkbox>
+              <Checkbox checked={includes(providers, 'Megafon')} onChange={(checked) => this.onProviderFilterChange(checked, 'Megafon')} label="Мегафон"></Checkbox>
+              <Checkbox checked={includes(providers, 'Tele2')} onChange={(checked) => this.onProviderFilterChange(checked, 'Tele2')} label="Теле2"></Checkbox>
+              <Checkbox checked={includes(providers, 'Tinkoff')} onChange={(checked) => this.onProviderFilterChange(checked, 'Tinkoff')} label="Тинькофф"></Checkbox>
               <div className="home__filter-quality">
                 По качеству связи
               </div>
+              <Checkbox checked={includes(levels, 4)} onChange={(checked) => this.onLevelFilterChange(checked, 4)} label="Отлично"></Checkbox>
+              <Checkbox checked={includes(levels, 3)} onChange={(checked) => this.onLevelFilterChange(checked, 3)} label="Хорошо"></Checkbox>
+              <Checkbox checked={includes(levels, 2)} onChange={(checked) => this.onLevelFilterChange(checked, 2)} label="Плохо"></Checkbox>
               <div className="home__filter-standard">
                 По стандарту сотовой связи
               </div>
+              <Checkbox checked={includes(standards, '4G')} onChange={(checked) => this.onStandardFilterChange(checked, '4G')} label="4G"></Checkbox>
+              <Checkbox checked={includes(standards, '3G')} onChange={(checked) => this.onStandardFilterChange(checked, '3G')} label="3G"></Checkbox>
+              <Checkbox checked={includes(standards, '2G')} onChange={(checked) => this.onStandardFilterChange(checked, '2G')} label="2G"></Checkbox>
             </div>}
             <div className="home__legend">
               <div className="home__legend-circle home__legend-circle-mts"></div>
@@ -163,14 +222,21 @@ class HomePageComponent extends React.Component {
 const mapStateToProps = (state) => ({
   from: selectFrom(state),
   to: selectTo(state),
-  routesApiData: selectRoutesApiData(state)
+  routesApiData: selectRoutesApiData(state),
+  providers: selectProviders(state),
+  levels: selectLevels(state),
+  standards: selectStandards(state),
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   getRoutes: () => dispatch(getRoutesAction()),
   setTo: (to) => dispatch(setToAction(to)),
   setFrom: (from) => dispatch(setFromAction(from)),
-  changeSearchValue: (id, value) => dispatch(changeSearchValueAction(id, value))
+  changeSearchValue: (id, value) => dispatch(changeSearchValueAction(id, value)),
+  setProviders: (providers) => dispatch(setProvidersAction(providers)),
+  setStandards: (standards) => dispatch(setStandardsAction(standards)),
+  setLevels: (levels) => dispatch(setLevelsAction(levels)),
+  applyFilters: () => dispatch(applyFiltersAction())
 });
 
 export const HomePage = connect(mapStateToProps, mapDispatchToProps)(HomePageComponent);

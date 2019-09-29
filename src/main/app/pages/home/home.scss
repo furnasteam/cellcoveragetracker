@@ -191,6 +191,7 @@
       text-align: right;
       line-height: 24px;
       padding-bottom: 16px;
+      font-weight: normal;
     }
 
     th.no {
@@ -238,27 +239,53 @@
     line-height: 24px;
     margin-left: -10px;
   }
-  &__legend-circle{
+  &__legend-circle {
     width: 16px;
     height: 16px;
     border-radius: 16px;
     margin-right: 8px;
   }
 
-  &__legend-circle-mts{
+  &__legend-circle-mts {
     background: #FF6868;
   }
-  &__legend-circle-beeline{
+  &__legend-circle-beeline {
     background: #FFB468;
   }
-  &__legend-circle-megafon{
+  &__legend-circle-megafon {
     background: #A7DD50;
   }
-  &__legend-circle-tele2{
+  &__legend-circle-tele2 {
     background: #68BDFF;
   }
-  &__legend-circle-tinkoff{
+  &__legend-circle-tinkoff {
     background: #FFE068;
+  }
+
+  &__filter-provider {
+    margin-top: 24px;
+    font-family: Source Sans Pro;
+    font-size: 18px;
+    color: #212121;
+    text-align: left;
+    line-height: 24px;
+  }
+
+  &__filter-quality {
+    margin-top: 24px;
+    font-family: Source Sans Pro;
+    font-size: 18px;
+    color: #212121;
+    text-align: left;
+    line-height: 24px;
+  }
+  &__filter-standard {
+    margin-top: 24px;
+    font-family: Source Sans Pro;
+    font-size: 18px;
+    color: #212121;
+    text-align: left;
+    line-height: 24px;
   }
 }
 

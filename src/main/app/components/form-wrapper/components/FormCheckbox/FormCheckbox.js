@@ -1,10 +1,9 @@
 import {bool, element, func, number, object, oneOfType, string} from 'prop-types';
 import React from 'react';
 import isEqual from 'lodash/isEqual';
-import {Checkbox} from '../../../../core/components/Checkbox/Checkbox';
 import {getValidationResultErrorMessage} from '../../../../models/ValidationResult';
-import {TestComponentWrapper} from '../../../TestComponentWrapper/TestComponentWrapper';
 import {FormErrorMessage} from '../FormErrorMessage/FormErrorMessage';
+import {Checkbox} from '../../../checkbox/Checkbox';
 
 export class FormCheckbox extends React.Component {
   static propTypes = {
@@ -61,15 +60,13 @@ export class FormCheckbox extends React.Component {
     } = this.props;
     return (
       <div className={className}>
-        <TestComponentWrapper id={testId} placement={testIdPlacement}>
-          <Checkbox checked={isEqual(value, checkedValue)}
-                    label={label}
-                    className={checkboxClassName}
-                    onChange={this.handleChange}
-                    disabled={disabled}
-                    asRadio={isRadio}
-          />
-        </TestComponentWrapper>
+        <Checkbox checked={isEqual(value, checkedValue)}
+                  label={label}
+                  className={checkboxClassName}
+                  onChange={this.handleChange}
+                  disabled={disabled}
+                  asRadio={isRadio}
+        />
         {
           !hideError &&
           <FormErrorMessage errorMessage={validationResult::getValidationResultErrorMessage()}/>

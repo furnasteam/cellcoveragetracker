@@ -1,12 +1,19 @@
 import {createApiData, selectApiData} from '../../redux/ApiDataModel';
-import {call, fork, select, takeEvery} from 'redux-saga/effects';
+import {call, fork, put, select, takeEvery} from 'redux-saga/effects';
 import {getData, isApiDataSuccess} from '../../models/ApiDataModel';
 import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import isEmpty from 'lodash/isEmpty';
+import includes from 'lodash/includes';
 
 export const HomeAction = {
   GET_ROUTES: 'HomeAction.GET_ROUTES',
   SET_TO: 'HomeAction.SET_TO',
   SET_FROM: 'HomeAction.SET_FROM',
+  SET_PROVIDERS: 'HomeAction.SET_PROVIDERS',
+  SET_LEVELS: 'HomeAction.SET_LEVELS',
+  SET_STANDARDS: 'HomeAction.SET_STANDARDS',
+  APPLY_FILTERS: 'HomeAction.APPLY_FILTERS'
 };
 
 let platform;
@@ -61,13 +68,33 @@ export function setFromAction(from) {
   return {type: HomeAction.SET_FROM, payload: {from}};
 }
 
+export function setProvidersAction(providers) {
+  return {type: HomeAction.SET_PROVIDERS, payload: {providers}};
+}
+
+export function setLevelsAction(levels) {
+  return {type: HomeAction.SET_LEVELS, payload: {levels}};
+}
+
+export function applyFiltersAction() {
+  return {type: HomeAction.APPLY_FILTERS};
+}
+
+export function setStandardsAction(standards) {
+  return {type: HomeAction.SET_STANDARDS, payload: {standards}};
+}
+
 export function getRoutesAction() {
   return {type: HomeAction.GET_ROUTES};
 }
 
 const GET_ROUTES_API_DATA_KEY = "Home.GET_ROUTES_API_DATA_KEY";
 
-const DEFAULT_STATE = {};
+const DEFAULT_STATE = {
+  providers: [],
+  standards: [],
+  levels: []
+};
 
 export function reduceHome(state = DEFAULT_STATE, action) {
   const {type, payload} = action;
@@ -81,6 +108,21 @@ export function reduceHome(state = DEFAULT_STATE, action) {
     case HomeAction.SET_FROM: {
       state = {...state};
       state.from = payload.from;
+      break;
+    }
+    case HomeAction.SET_PROVIDERS: {
+      state = {...state};
+      state.providers = payload.providers;
+      break;
+    }
+    case HomeAction.SET_STANDARDS: {
+      state = {...state};
+      state.standards = payload.standards;
+      break;
+    }
+    case HomeAction.SET_LEVELS: {
+      state = {...state};
+      state.levels = payload.levels;
       break;
     }
   }
@@ -100,8 +142,90 @@ export function selectTo(state) {
   return selectHome(state).to;
 }
 
+export function selectProviders(state) {
+  return selectHome(state).providers;
+}
+
+export function selectLevels(state) {
+  return selectHome(state).levels;
+}
+
+export function selectStandards(state) {
+  return selectHome(state).standards;
+}
+
 export function selectRoutesApiData(state) {
   return selectApiData(state, GET_ROUTES_API_DATA_KEY);
+}
+
+function addPolylineToMap(map, route, bounds) {
+  var lineString = new H.geo.LineString();
+
+  forEach(route, item => {
+    lineString.pushPoint({
+      lat: item.latitude,
+      lng: item.longitude
+    })
+  });
+
+  const object = new H.map.Polyline(
+    lineString, {style: {lineWidth: 4}}
+  );
+
+  map.addObject(object);
+  if (bounds) {
+    map.setViewBounds(object.getBounds())
+  }
+}
+
+function addCircleToMap(map, point) {
+
+  function getLevelOpacity(level) {
+    switch (level) {
+      case 4: {
+        return '0.7'
+      }
+      case 3: {
+        return '0.5'
+      }
+      default: {
+        return '0.3'
+      }
+    }
+  }
+
+  function getColor(point) {
+    switch (point.operatorName) {
+      case 'Tele2':
+        return `rgba(104, 189, 255, ${getLevelOpacity(point.level)})`;
+      case 'MTS':
+        return `rgba(255, 104, 104, ${getLevelOpacity(point.level)})`;
+      case 'Tinkoff':
+        return `rgba(255, 224, 104, ${getLevelOpacity(point.level)})`;
+      case 'Beeline':
+        return `rgba(255, 180, 104, ${getLevelOpacity(point.level)})`;
+      case 'Megafon':
+        return `rgba(167, 221, 80, ${getLevelOpacity(point.level)})`;
+    }
+  }
+
+  map.addObject(new H.map.Circle(
+    // The central point of the circle
+    {lat: point.latitude, lng: point.longitude},
+    // The radius of the circle in meters
+    100,
+    {
+      style: {
+        strokeColor: 'rgba(55, 85, 170, 0)', // Color of the perimeter
+        lineWidth: 2,
+        fillColor: getColor(point) || 'rgba(55, 85, 170, 0.5)' // Color of the circle
+      }
+    }
+  ));
+}
+
+function addPointsToMap(map, points) {
+  forEach(points, point => addCircleToMap(map, point))
 }
 
 function* getRoutesSaga() {
@@ -114,203 +238,46 @@ function* getRoutesSaga() {
 
   const routesApiData = yield call(createApiData, GET_ROUTES_API_DATA_KEY, 'https://cellcoverage.azurewebsites.net/api/Search/RouteInfo', {from, to});
 
-  function addPolylineToMap(map, route) {
-    var lineString = new H.geo.LineString();
-
-    forEach(route, item => {
-      lineString.pushPoint({
-        lat: item.latitude,
-        lng: item.longitude
-      })
-    });
-
-    const object = new H.map.Polyline(
-      lineString, {style: {lineWidth: 4}}
-    );
-
-    map.addObject(object);
-    map.setViewBounds(object.getBounds())
-  }
-
-  function addCircleToMap(map, point) {
-
-    console.log('point123', point);
-
-    function getLevelOpacity(level){
-      switch (level) {
-        case 4:{
-          return '0.7'
-        }
-        case 3:{
-          return '0.5'
-        }
-        default:{
-          return '0.3'
-        }
-      }
-    }
-
-    function getColor(point) {
-      console.log('point.operatorName', point)
-      switch (point.operatorName) {
-        case 'Tele2':
-          return `rgba(104, 189, 255, ${getLevelOpacity(point.level)})`;
-        case 'MTS':
-          return `rgba(255, 104, 104, ${getLevelOpacity(point.level)})`;
-        case 'Tinkoff':
-          return `rgba(255, 224, 104, ${getLevelOpacity(point.level)})`;
-        case 'Beeline':
-          return `rgba(255, 180, 104, ${getLevelOpacity(point.level)})`;
-        case 'Megafon':
-          return `rgba(167, 221, 80, ${getLevelOpacity(point.level)})`;
-      }
-    }
-
-    console.log('getColor(point)', getColor(point))
-
-    map.addObject(new H.map.Circle(
-      // The central point of the circle
-      {lat: point.latitude, lng: point.longitude},
-      // The radius of the circle in meters
-      100,
-      {
-        style: {
-          strokeColor: 'rgba(55, 85, 170, 0)', // Color of the perimeter
-          lineWidth: 2,
-          fillColor: getColor(point) || 'rgba(55, 85, 170, 0.5)' // Color of the circle
-        }
-      }
-    ));
-  }
-
-  function addPointsToMap(map, points) {
-    forEach(points, point => addCircleToMap(map, point))
-  }
+  yield put(setProvidersAction([]));
+  yield put(setLevelsAction([]));
+  yield put(setStandardsAction([]));
 
   if (routesApiData::isApiDataSuccess() && routesApiData::getData()) {
-    addPolylineToMap(getMap(), routesApiData::getData().route);
+    getMap().removeObjects(getMap().getObjects());
+    addPolylineToMap(getMap(), routesApiData::getData().route, true);
     addPointsToMap(getMap(), routesApiData::getData().points)
   }
 
-// Get an instance of the routing service:
-  //var router = getPlatform().getRoutingService();
+}
 
-  // if (routesApiData::isApiDataSuccess()) {
-  //   const routes = routesApiData::getData()[0].routes;
-  //   const routingParams = _map(routes, route => ({
-  //     'mode': `fastest;${route.transport === 'Пешком' ? 'pedestrian' : 'car'}`,
-  //     // The start point of the route:
-  //     'waypoint0': `geo!${route.points[0].coordinate.latitude},${route.points[0].coordinate.longitude}`,
-  //     // The end point of the route:
-  //     'waypoint1': `geo!${last(route.points).coordinate.latitude},${last(route.points).coordinate.longitude}`,
-  //     // To retrieve the shape of the route we choose the route
-  //     // representation mode 'display'
-  //     'representation': 'display',
-  //     'transport': route.transport
-  //   }));
-  //
-  //   const getOnResultCallback = (transport) => {
-  //     return function (result) {
-  //       var route,
-  //         routeShape,
-  //         startPoint,
-  //         endPoint,
-  //         linestring;
-  //       if (result.response.route) {
-  //         // Pick the first route from the response:
-  //         route = result.response.route[0];
-  //         // Pick the route's shape:
-  //         routeShape = route.shape;
-  //
-  //         // Create a linestring to use as a point source for the route line
-  //         linestring = new H.geo.LineString();
-  //
-  //         // Push all the points in the shape into the linestring:
-  //         routeShape.forEach(function (point) {
-  //           var parts = point.split(',');
-  //           linestring.pushLatLngAlt(parts[0], parts[1]);
-  //         });
-  //
-  //         // Retrieve the mapped positions of the requested waypoints:
-  //         startPoint = route.waypoint[0].mappedPosition;
-  //         endPoint = route.waypoint[1].mappedPosition;
-  //
-  //         const getRandomColor = () => {
-  //           var letters = '0123456789ABCDEF';
-  //           var color = '#';
-  //           for (var i = 0; i < 6; i++) {
-  //             color += letters[Math.floor(Math.random() * 16)];
-  //           }
-  //           return color;
-  //         };
-  //
-  //
-  //         // Create a polyline to display the route:
-  //         var routeLine = new H.map.Polyline(linestring, {
-  //           style: {strokeColor: getRandomColor(), lineWidth: 10}
-  //         });
-  //
-  //         // Create a marker for the start point:
-  //         var startMarker = new H.map.Marker({
-  //           lat: startPoint.latitude,
-  //           lng: startPoint.longitude
-  //         });
-  //
-  //         startMarker.addEventListener('tap', function (evt) {
-  //           // event target is the marker itself, group is a parent event target
-  //           // for all objects that it contains
-  //           var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
-  //             // read custom data
-  //             content: evt.target.getData()
-  //           });
-  //           // show info bubble
-  //           ui.addBubble(bubble);
-  //         }, false);
-  //
-  //         // Create a marker for the end point:
-  //         var endMarker = new H.map.Marker({
-  //           lat: endPoint.latitude,
-  //           lng: endPoint.longitude
-  //         });
-  //         endMarker.setData(transport);
-  //
-  //         endMarker.addEventListener('tap', function (evt) {
-  //           // event target is the marker itself, group is a parent event target
-  //           // for all objects that it contains
-  //           var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
-  //             // read custom data
-  //             content: evt.target.getData()
-  //           });
-  //           // show info bubble
-  //           ui.addBubble(bubble);
-  //         }, false);
-  //         startMarker.setData(transport);
-  //
-  //         // Add the route polyline and the two markers to the map:
-  //         getMap().addObjects([routeLine, startMarker, endMarker]);
-  //
-  //         // Set the map's viewport to make the whole route visible:
-  //         getMap().setViewBounds(routeLine.getBounds());
-  //       }
-  //     }
-  //   };
-  //
-  //   // Define a callback function to process the routing response:
-  //
-  //   if (!isEmpty(routingParams)) {
-  //     for (let routingParam of routingParams) {
-  //       router.calculateRoute(routingParam, getOnResultCallback(routingParam.transport),
-  //         function (error) {
-  //           alert(error.message);
-  //         });
-  //     }
-  //   }
-  // }
-
+function* applyFiltersSaga() {
+  const routesApiData = yield select(selectRoutesApiData);
+  if (routesApiData::isApiDataSuccess() && routesApiData::getData()) {
+    getMap().removeObjects(getMap().getObjects());
+    addPolylineToMap(getMap(), routesApiData::getData().route);
+    const providers = yield select(selectProviders);
+    const levels = yield select(selectLevels);
+    const standards = yield select(selectStandards);
+    const filteredPoints = filter(routesApiData::getData().points, point => {
+      let result = true;
+      if (!isEmpty(providers)) {
+        result = result && includes(providers, point.operatorName)
+      }
+      if (!isEmpty(levels)) {
+        result = result && includes(levels, point.level);
+      }
+      if (!isEmpty(standards)) {
+        result = result && includes(standards, point.cellType);
+      }
+      return result
+    });
+    addPointsToMap(getMap(), filteredPoints)
+  }
 }
 
 function* watch() {
   yield takeEvery(HomeAction.GET_ROUTES, getRoutesSaga);
+  yield takeEvery(HomeAction.APPLY_FILTERS, applyFiltersSaga);
 }
 
 export function* watchHome() {
